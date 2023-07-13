@@ -1,10 +1,9 @@
 fastapi
 uvicorn
 starlette
-markupsafe==2.0.1
-Jinja2==3.0.3
+Jinja2
 boto3
-numpy_
+numpy
 datetime
 python-multipart
 aiofiles
