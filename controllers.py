@@ -38,11 +38,9 @@ DIFF_JST_FROM_UTC = 9
 
 task:HeavyTask = HeavyTask(10)
 
-@app.get("/api/background-task")
 def fetch_background_task():
     return {"status": task.get_status()}
 
-@app.post("/api/background-task")
 def execute_background_task(background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(task)
