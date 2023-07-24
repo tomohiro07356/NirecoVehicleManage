@@ -121,8 +121,8 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
         lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
         g.append(lis_ImgPath)
 
-    #lis_DB = [a,b,c,d,e,f,g,h]
-    lis_DB = [a,b,c,d,e,f,g]
+    lis_DB = [a,b,c,d,e,f,g,h]
+    #lis_DB = [a,b,c,d,e,f,g]
     message = NextUpdate()
 
     #最新のログファイル
