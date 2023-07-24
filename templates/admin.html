@@ -1,6 +1,12 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<!-- ローディング画面 -->
+<div id="loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- コンテンツ部分 -->
 <div class="container">
     <div class="row my-2">
         <div class="col-4 font-weight-bold">本日の入庫管理車両：{{ ManagedNum }}台</div>
