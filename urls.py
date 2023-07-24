@@ -9,3 +9,6 @@ app.add_api_route('/admin/monthly_record', get_monthly_record, methods=['POST'])
 app.add_api_route('/download_employee', history_download_employee)
 app.add_api_route('/download_nonemployee', history_download_nonemployee)
 app.add_api_route('/add_holiday', add_holiday, methods=['POST'])
+
+app.add_api_route('/debug', debug_get, methods=['GET'])
+app.add_api_route('/debug', debug_post, methods=['POST'])
