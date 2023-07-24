@@ -1,7 +1,7 @@
 import os
 import io
 import datetime
-from HeavyTask import HeavyTask
+from heavyTask import HeavyTask
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
