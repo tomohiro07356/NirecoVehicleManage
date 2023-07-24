@@ -10,5 +10,5 @@ app.add_api_route('/download_employee', history_download_employee)
 app.add_api_route('/download_nonemployee', history_download_nonemployee)
 app.add_api_route('/add_holiday', add_holiday, methods=['POST'])
 
-app.add_api_route('/debug', debug_get, methods=['GET'])
-app.add_api_route('/debug', debug_post, methods=['POST'])
+app.add_api_route('/debug', fetch_background_task, methods=['GET'])
+app.add_api_route('/debug', execute_background_task, methods=['POST'])
