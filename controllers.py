@@ -1,7 +1,8 @@
 import os
 import io
 import datetime
-from fastapi import FastAPI
+from modules.heavy_task import HeavyTask
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
@@ -35,6 +36,20 @@ AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
 #JSTとUTCの差分は+9時間
 DIFF_JST_FROM_UTC = 9
 
+task:HeavyTask = HeavyTask(10)
+
+@app.get("/api/background-task")
+def fetch_background_task():
+    return {"status": task.get_status()}
+
+@app.post("/api/background-task")
+def execute_background_task(background_tasks: BackgroundTasks):
+    try:
+        background_tasks.add_task(task)
+    except Exception as e:
+        print(e)
+        return {"message": f"error occured. reason: {e}"}
+    return {"message": "ok"}
 
 #https://nireco-vehicle-manage.herokuapp.com/
 def index(request: Request):
