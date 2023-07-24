@@ -1,7 +1,7 @@
 from controllers import *
 
 # FastAPIのルーティング用関数
-app.add_api_route('/', index_)
+app.add_api_route('/', index)
 app.add_api_route('/admin', admin)
 app.add_api_route('/admin/dateinfo', get_dateinfo, methods=['POST'])
 app.add_api_route('/admin/dateinfo_error', get_dateinfo_error, methods=['POST'])
