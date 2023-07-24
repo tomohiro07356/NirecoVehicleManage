@@ -13,6 +13,7 @@ import urllib.request, urllib.error
 from pathlib import Path
 import json
 import pandas as pd
+from starlette.middleware.cors import CORSMiddleware
 
 #ベーシック認証
 from fastapi import Depends, HTTPException, status
@@ -24,6 +25,13 @@ app = FastAPI(
     title='ニレコ車両管理サイト',
     description='ニレコ八王子本社の駐車場入庫管理システムです。',
     version='1.0'
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*']
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
