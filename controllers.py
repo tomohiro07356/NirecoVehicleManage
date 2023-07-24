@@ -1,7 +1,6 @@
 import os
 import io
 import datetime
-from heavyTask import HeavyTask
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
@@ -13,7 +12,6 @@ import urllib.request, urllib.error
 from pathlib import Path
 import json
 import pandas as pd
-from starlette.middleware.cors import CORSMiddleware
 
 #ベーシック認証
 from fastapi import Depends, HTTPException, status
@@ -26,13 +24,6 @@ app = FastAPI(
     description='ニレコ八王子本社の駐車場入庫管理システムです。',
     version='1.0'
 )
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=['*'],
-    allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*']
-)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -44,18 +35,26 @@ AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
 #JSTとUTCの差分は+9時間
 DIFF_JST_FROM_UTC = 9
 
-task:HeavyTask = HeavyTask(10)
+def index_(request: Request):
+    dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
+    day = dt_now.strftime('%Y%m%d')
 
-def fetch_background_task():
-    return {"status": task.get_status()}
+    Items = DynamoDB()
+    cnt = 0
+    lis_ID = []
+    for item in Items:
+        cnt += 1
+        if item['Date']==day[2:]: #先頭2文字除きYYmmdd
+            lis_ID.append(item['ID'])
+    ManagedNum = len(lis_ID) #台数
+    message = NextUpdate()
+    status = OAT()
 
-def execute_background_task(background_tasks: BackgroundTasks):
-    try:
-        background_tasks.add_task(task)
-    except Exception as e:
-        print(e)
-        return {"message": f"error occured. reason: {e}"}
-    return {"message": "ok"}
+    return templates.TemplateResponse('index.html',
+                                    {'request': request,
+                                    'ManagedNum': ManagedNum,
+                                    'message': message,
+                                    'status': status})
 
 #https://nireco-vehicle-manage.herokuapp.com/
 def index(request: Request):
@@ -72,7 +71,6 @@ def index(request: Request):
     ManagedNum = len(lis_ID) #台数
     message = NextUpdate()
     status = OAT()
-    #status = str(cnt)
 
     return templates.TemplateResponse('index.html',
                                     {'request': request,
