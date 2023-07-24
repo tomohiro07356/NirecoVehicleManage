@@ -35,27 +35,6 @@ AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
 #JSTとUTCの差分は+9時間
 DIFF_JST_FROM_UTC = 9
 
-def index_(request: Request):
-    dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
-    day = dt_now.strftime('%Y%m%d')
-
-    Items = DynamoDB()
-    cnt = 0
-    lis_ID = []
-    for item in Items:
-        cnt += 1
-        if item['Date']==day[2:]: #先頭2文字除きYYmmdd
-            lis_ID.append(item['ID'])
-    ManagedNum = len(lis_ID) #台数
-    message = NextUpdate()
-    status = OAT()
-
-    return templates.TemplateResponse('index.html',
-                                    {'request': request,
-                                    'ManagedNum': ManagedNum,
-                                    'message': message,
-                                    'status': status})
-
 #https://nireco-vehicle-manage.herokuapp.com/
 def index(request: Request):
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
