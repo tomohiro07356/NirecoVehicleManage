@@ -198,8 +198,8 @@ async def get_dateinfo(request: Request):
         f.append(lis_Person)
         g.append(lis_ImgPath)
 
-    #lis_DB = [a,b,c,d,e,f,g,h]
-    lis_DB = [a,b,c,d,e,f,g]
+    lis_DB = [a,b,c,d,e,f,g,h]
+    #lis_DB = [a,b,c,d,e,f,g]
     message = NextUpdate()
 
     return templates.TemplateResponse('dateinfo.html',
