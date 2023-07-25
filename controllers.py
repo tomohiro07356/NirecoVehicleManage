@@ -69,8 +69,9 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
 
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
     day = dt_now.strftime('%Y%m%d')
+    day = day[2:] #先頭2文字除きYYmmdd
 
-    Items = DynamoDB()
+    Items = DynamoDB_GSI(day)
     lis_ID, lis_Date, lis_Time, lis_Image, lis_estiID, lis_Person, lis_ImgPath, lis_Ori = [],[],[],[],[],[],[],[]
 
     for item in Items:
@@ -99,15 +100,14 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
     #sortしたlistを作成
     a, b, c, d, e, f, g, h = [],[],[],[],[],[],[],[]
     for i in ind_lex:
-        if lis_Date[i]==day[2:]: #先頭2文字除きYYmmdd
-            a.append(lis_ID[i])
-            b.append(lis_Date[i])
-            c.append(lis_Time[i])
-            d.append(lis_Image[i])
-            e.append(lis_estiID[i])
-            f.append(lis_Person[i])
-            g.append(lis_ImgPath[i])
-            h.append(lis_Ori[i])
+        a.append(lis_ID[i])
+        b.append(lis_Date[i])
+        c.append(lis_Time[i])
+        d.append(lis_Image[i])
+        e.append(lis_estiID[i])
+        f.append(lis_Person[i])
+        g.append(lis_ImgPath[i])
+        h.append(lis_Ori[i])
     
     ManagedNum = len(a) #台数
     if ManagedNum == 0:
