@@ -68,8 +68,8 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
         )
 
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
-    day = dt_now.strftime('%Y%m%d')
-    day = day[2:] #先頭2文字除きYYmmdd
+    day_ = dt_now.strftime('%Y%m%d')
+    day = day_[2:] #先頭2文字除きYYmmdd
 
     Items = DynamoDB_GSI(day)
     lis_ID, lis_Date, lis_Time, lis_Image, lis_estiID, lis_Person, lis_ImgPath, lis_Ori = [],[],[],[],[],[],[],[]
@@ -121,8 +121,8 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
     #最新のログファイル
     hour = dt_now.strftime('%H')
     if int(hour) < 9:
-        day = (dt_now + datetime.timedelta(days = -1)).strftime('%Y%m%d')
-    log_file = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/log_" + day + ".log"
+        day_ = (dt_now + datetime.timedelta(days = -1)).strftime('%Y%m%d')
+    log_file = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/log_" + day_ + ".log"
 
     #認証された場合のみadmin画面へ推移
     return templates.TemplateResponse('admin.html',
