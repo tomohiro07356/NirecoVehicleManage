@@ -1,6 +1,12 @@
 {% extends "layout.html" %}
 {% block content %}
 
+<!-- ローディング画面 -->
+<div id="loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- コンテンツ部分 -->
 <div class="container">
     <div class="row my-2">
         <div class="col-5 font-weight-bold">{{ display_date }} ナンバー認識できなかった車両：{{ ManagedNum }}台</div>
