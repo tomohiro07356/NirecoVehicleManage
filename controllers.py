@@ -7,6 +7,7 @@ from fastapi.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 from starlette.requests import Request
 import boto3
+from boto3.dynamodb.conditions import Key
 import numpy as np
 import urllib.request, urllib.error
 from pathlib import Path
@@ -760,7 +761,7 @@ def DynamoDB_GSI(date_yymmdd):
     table = DynamoDB.Table('NirecoVehicleManage')
     response = table.query(
         IndexName='Date-index',
-        KeyConditionExpression=Key('Date').eq('230725')
+        KeyConditionExpression=Key("Date").eq(date_yymmdd)
     )
     Items = response['Items']
     return Items
