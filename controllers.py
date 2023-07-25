@@ -40,7 +40,7 @@ def index(request: Request):
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
     day = dt_now.strftime('%Y%m%d')
 
-    Items = DynamoDB_GSI()
+    Items = DynamoDB_GSI(day[2:])
     cnt = 0
     lis_ID = []
     for item in Items:
