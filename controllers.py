@@ -40,15 +40,9 @@ DIFF_JST_FROM_UTC = 9
 def index(request: Request):
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
     day = dt_now.strftime('%Y%m%d')
-
-    Items = DynamoDB_GSI(day[2:])
-    cnt = 0
-    lis_ID = []
-    for item in Items:
-        cnt += 1
-        if item['Date']==day[2:]: #先頭2文字除きYYmmdd
-            lis_ID.append(item['ID'])
-    ManagedNum = len(lis_ID) #台数
+    day = day[2:] #先頭2文字除きYYmmdd
+    Items = DynamoDB_GSI(day)
+    ManagedNum = len(Items) #台数
     message = NextUpdate()
     status = OAT()
 
