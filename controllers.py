@@ -199,7 +199,7 @@ async def get_dateinfo(request: Request):
                                     'listDB': lis_DB,
                                     'ManagedNum': ManagedNum,
                                     'message': message,
-                                    'display_date': id_date,
+                                    'display_date': id_date_,
                                     'dt_now': dt_now})
 
 
@@ -270,7 +270,7 @@ async def get_dateinfo_error(request: Request):
     
     ManagedNum = len(a) #台数
     if ManagedNum == 0:
-        lis_Date.append(id_date_)
+        lis_Date.append(id_date)
         lis_Time.append("")
         lis_ImgPath.append("https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png")
         a.append(lis_Date[0])
@@ -323,7 +323,7 @@ async def get_dateinfo_error(request: Request):
                                     'listDB': lis_DB,
                                     'listNDB': lis_NDB,
                                     'ManagedNum': ManagedNum,
-                                    'display_date': id_date,
+                                    'display_date': id_date_,
                                     'dt_now': dt_now,
                                     'initial_slide': initial_slide})
 
