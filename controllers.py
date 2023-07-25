@@ -40,7 +40,7 @@ def index(request: Request):
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
     day = dt_now.strftime('%Y%m%d')
 
-    Items = DynamoDB()
+    Items = DynamoDB_GSI()
     cnt = 0
     lis_ID = []
     for item in Items:
@@ -739,7 +739,7 @@ async def add_holiday(request: Request):
     return data_dict
 
     
-#DynamoDBからデータ取得
+#DynamoDBから全件データ取得
 def DynamoDB():
     session = Session()
     DynamoDB = session.resource('dynamodb')
@@ -751,6 +751,18 @@ def DynamoDB():
     while 'LastEvaluatedKey' in response:
         response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
         Items.extend(response['Items'])
+    return Items
+
+#GSIを使ったQuery検索
+def DynamoDB_GSI(date_yymmdd):
+    session = Session()
+    DynamoDB = session.resource('dynamodb')
+    table = DynamoDB.Table('NirecoVehicleManage')
+    response = table.query(
+        IndexName='Date-index',
+        KeyConditionExpression=Key('Date').eq('230725')
+    )
+    Items = response['Items']
     return Items
 
 def DynamoDB_ER():
