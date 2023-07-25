@@ -139,12 +139,12 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
 async def get_dateinfo(request: Request):
     data = await request.form()
     data_date = data.getlist('id_date') 
-    id_date = data_date[0] #2020-12-01
-    id_date_ = id_date[2:4] + id_date[5:7] + id_date[8:] #201201
+    id_date_ = data_date[0] #2020-12-01
+    id_date = id_date_[2:4] + id_date_[5:7] + id_date_[8:] #230725
 
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC) 
 
-    Items = DynamoDB()
+    Items = DynamoDB_GSI(id_date)
     lis_ID, lis_Date, lis_Time, lis_Image, lis_estiID, lis_Person, lis_ImgPath, lis_Ori = [],[],[],[],[],[],[],[]
 
     for item in Items:
@@ -172,15 +172,14 @@ async def get_dateinfo(request: Request):
     #sortしたlistを作成
     a, b, c, d, e, f, g, h = [],[],[],[],[],[],[],[]
     for i in ind_lex:
-        if lis_Date[i]==id_date_:
-            a.append(lis_ID[i])
-            b.append(lis_Date[i])
-            c.append(lis_Time[i])
-            d.append(lis_Image[i])
-            e.append(lis_estiID[i])
-            f.append(lis_Person[i])
-            g.append(lis_ImgPath[i])
-            h.append(lis_Ori[i])
+        a.append(lis_ID[i])
+        b.append(lis_Date[i])
+        c.append(lis_Time[i])
+        d.append(lis_Image[i])
+        e.append(lis_estiID[i])
+        f.append(lis_Person[i])
+        g.append(lis_ImgPath[i])
+        h.append(lis_Ori[i])
 
     ManagedNum = len(a) #台数
     if ManagedNum == 0:
@@ -209,8 +208,8 @@ async def get_dateinfo(request: Request):
 async def get_dateinfo_error(request: Request):
     data = await request.form()
     data_date = data.getlist('id_date') 
-    id_date = data_date[0] #2020-12-01
-    id_date_ = id_date[2:4] + id_date[5:7] + id_date[8:] #201201
+    id_date_ = data_date[0] #2020-12-01
+    id_date = id_date_[2:4] + id_date_[5:7] + id_date_[8:] #230725
 
     data_changeID = data.getlist('change_id')
     data_changePerson = data.getlist('change_person')
@@ -240,15 +239,14 @@ async def get_dateinfo_error(request: Request):
 
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
 
-    Items = DynamoDB_ER()
+    Items = DynamoDB_ER_GSI(id_date)
     lis_Date, lis_Time, lis_ImgPath, lis_ImgName = [],[],[],[]
 
     for item in Items:
-        if item['Date']==id_date_:
-            lis_Date.append(item['Date'])
-            lis_Time.append(item['Time'])
-            lis_ImgPath.append("https://nireco-vehicle-manage-error.s3-ap-northeast-1.amazonaws.com/" + item['Image'])
-            lis_ImgName.append(item['Image'])
+        lis_Date.append(item['Date'])
+        lis_Time.append(item['Time'])
+        lis_ImgPath.append("https://nireco-vehicle-manage-error.s3-ap-northeast-1.amazonaws.com/" + item['Image'])
+        lis_ImgName.append(item['Image'])
 
     #日付・時間順にsortした時のindexを取得
     ind_lex = np.lexsort((lis_Time,lis_Date))
@@ -770,6 +768,17 @@ def DynamoDB_ER():
     while 'LastEvaluatedKey' in response:
         response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
         Items.extend(response['Items'])
+    return Items
+
+def DynamoDB_ER_GSI(date_yymmdd):
+    session = Session()
+    DynamoDB = session.resource('dynamodb')
+    table = DynamoDB.Table('NirecoVehicleManageError')
+    response = table.query(
+        IndexName='Date-index',
+        KeyConditionExpression=Key("Date").eq(date_yymmdd)
+    )
+    Items = response['Items']
     return Items
 
 def DynamoDB_nireco():
