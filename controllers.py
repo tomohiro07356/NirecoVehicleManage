@@ -111,7 +111,8 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
     
     ManagedNum = len(a) #台数
     if ManagedNum == 0:
-        lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
+        #lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
+        lis_ImgPath.append("https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png")
         g.append(lis_ImgPath)
 
     lis_DB = [a,b,c,d,e,f,g,h]
