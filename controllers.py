@@ -184,9 +184,12 @@ async def get_dateinfo(request: Request):
 
     ManagedNum = len(a) #台数
     if ManagedNum == 0:
-        lis_Time[0] = ""
-        lis_Person[0] = ""
-        lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
+        #lis_Time[0] = ""
+        #lis_Person[0] = ""
+        #lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
+        lis_Time.append("")
+        lis_Person.append("")
+        lis_ImgPath.append("https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png")
         c.append(lis_ImgPath)
         f.append(lis_Person)
         g.append(lis_ImgPath)
