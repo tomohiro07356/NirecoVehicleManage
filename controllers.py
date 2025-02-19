@@ -696,13 +696,14 @@ def history_download_nonemployee(request: Request):
   
     lis_histdate_sort = []
     for i in range(len(lis_of_lis_histdate)):
-        lis_histdate_sort.append(sorted(lis_of_lis_histdate[i]))
+        if len(lis_of_lis_histdate[i]) > 1:
+            lis_of_lis_histdate[i].sort()
 
-    for i in range(len(lis_histdate_sort)):
-        date_cnt = len(lis_histdate_sort[i])
+    for i in range(len(lis_of_lis_histdate)):
+        date_cnt = len(lis_of_lis_histdate[i])
         for cnt in range(date_cnt):
             if cnt > 0:
-                lis_histdate_fix.append(lis_histdate_sort[i][cnt])
+                lis_histdate_fix.append(lis_of_lis_histdate[i][cnt])
                 nID_fix.append(nID[i])
                 nName_fix.append(nName[i])
                 n_number_fix.append(n_number[i])
