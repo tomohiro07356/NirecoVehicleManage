@@ -694,8 +694,8 @@ def history_download_nonemployee(request: Request):
     # 利用日を追加
     lis_histdate_fix, nID_fix, nName_fix, n_number_fix = [],[],[],[]
 
-    for i in range(len(lis_of_lis_histdate)):
-        lis_of_lis_histdate[i].sort()        
+    #for i in range(len(lis_of_lis_histdate)):
+    #    lis_of_lis_histdate[i].sort()        
 
     for i in range(len(lis_of_lis_histdate)):
         date_cnt = len(lis_of_lis_histdate[i])
