@@ -1,13 +1,12 @@
 import os
 import io
 import datetime
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from starlette.templating import Jinja2Templates
 from starlette.requests import Request
 import boto3
-from boto3.dynamodb.conditions import Key
 import numpy as np
 import urllib.request, urllib.error
 from pathlib import Path
@@ -36,15 +35,23 @@ AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
 #JSTとUTCの差分は+9時間
 DIFF_JST_FROM_UTC = 9
 
+
 #https://nireco-vehicle-manage.herokuapp.com/
 def index(request: Request):
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
     day = dt_now.strftime('%Y%m%d')
-    day = day[2:] #先頭2文字除きYYmmdd
-    Items = DynamoDB_GSI(day)
-    ManagedNum = len(Items) #台数
+
+    Items = DynamoDB()
+    cnt = 0
+    lis_ID = []
+    for item in Items:
+        cnt += 1
+        if item['Date']==day[2:]: #先頭2文字除きYYmmdd
+            lis_ID.append(item['ID'])
+    ManagedNum = len(lis_ID) #台数
     message = NextUpdate()
     status = OAT()
+    #status = str(cnt)
 
     return templates.TemplateResponse('index.html',
                                     {'request': request,
@@ -68,10 +75,9 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
         )
 
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
-    day_ = dt_now.strftime('%Y%m%d')
-    day = day_[2:] #先頭2文字除きYYmmdd
+    day = dt_now.strftime('%Y%m%d')
 
-    Items = DynamoDB_GSI(day)
+    Items = DynamoDB()
     lis_ID, lis_Date, lis_Time, lis_Image, lis_estiID, lis_Person, lis_ImgPath, lis_Ori = [],[],[],[],[],[],[],[]
 
     for item in Items:
@@ -100,30 +106,29 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
     #sortしたlistを作成
     a, b, c, d, e, f, g, h = [],[],[],[],[],[],[],[]
     for i in ind_lex:
-        a.append(lis_ID[i])
-        b.append(lis_Date[i])
-        c.append(lis_Time[i])
-        d.append(lis_Image[i])
-        e.append(lis_estiID[i])
-        f.append(lis_Person[i])
-        g.append(lis_ImgPath[i])
-        h.append(lis_Ori[i])
+        if lis_Date[i]==day[2:]: #先頭2文字除きYYmmdd
+            a.append(lis_ID[i])
+            b.append(lis_Date[i])
+            c.append(lis_Time[i])
+            d.append(lis_Image[i])
+            e.append(lis_estiID[i])
+            f.append(lis_Person[i])
+            g.append(lis_ImgPath[i])
+            h.append(lis_Ori[i])
     
     ManagedNum = len(a) #台数
     if ManagedNum == 0:
-        #lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
-        lis_ImgPath.append("https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png")
+        lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
         g.append(lis_ImgPath)
 
     lis_DB = [a,b,c,d,e,f,g,h]
-    #lis_DB = [a,b,c,d,e,f,g]
     message = NextUpdate()
 
     #最新のログファイル
     hour = dt_now.strftime('%H')
     if int(hour) < 9:
-        day_ = (dt_now + datetime.timedelta(days = -1)).strftime('%Y%m%d')
-    log_file = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/log_" + day_ + ".log"
+        day = (dt_now + datetime.timedelta(days = -1)).strftime('%Y%m%d')
+    log_file = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/log_" + day + ".log"
 
     #認証された場合のみadmin画面へ推移
     return templates.TemplateResponse('admin.html',
@@ -140,12 +145,12 @@ def admin(request: Request, credentials: HTTPBasicCredentials = Depends(security
 async def get_dateinfo(request: Request):
     data = await request.form()
     data_date = data.getlist('id_date') 
-    id_date_ = data_date[0] #2020-12-01
-    id_date = id_date_[2:4] + id_date_[5:7] + id_date_[8:] #230725
+    id_date = data_date[0] #2020-12-01
+    id_date_ = id_date[2:4] + id_date[5:7] + id_date[8:] #201201
 
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC) 
 
-    Items = DynamoDB_GSI(id_date)
+    Items = DynamoDB()
     lis_ID, lis_Date, lis_Time, lis_Image, lis_estiID, lis_Person, lis_ImgPath, lis_Ori = [],[],[],[],[],[],[],[]
 
     for item in Items:
@@ -173,29 +178,26 @@ async def get_dateinfo(request: Request):
     #sortしたlistを作成
     a, b, c, d, e, f, g, h = [],[],[],[],[],[],[],[]
     for i in ind_lex:
-        a.append(lis_ID[i])
-        b.append(lis_Date[i])
-        c.append(lis_Time[i])
-        d.append(lis_Image[i])
-        e.append(lis_estiID[i])
-        f.append(lis_Person[i])
-        g.append(lis_ImgPath[i])
-        h.append(lis_Ori[i])
+        if lis_Date[i]==id_date_:
+            a.append(lis_ID[i])
+            b.append(lis_Date[i])
+            c.append(lis_Time[i])
+            d.append(lis_Image[i])
+            e.append(lis_estiID[i])
+            f.append(lis_Person[i])
+            g.append(lis_ImgPath[i])
+            h.append(lis_Ori[i])
 
     ManagedNum = len(a) #台数
     if ManagedNum == 0:
-        #lis_Time[0] = ""
-        #lis_Person[0] = ""
-        #lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
-        lis_Time.append("")
-        lis_Person.append("")
-        lis_ImgPath.append("https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png")
+        lis_Time[0] = ""
+        lis_Person[0] = ""
+        lis_ImgPath[0] = "https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png"
         c.append(lis_ImgPath)
         f.append(lis_Person)
         g.append(lis_ImgPath)
 
     lis_DB = [a,b,c,d,e,f,g,h]
-    #lis_DB = [a,b,c,d,e,f,g]
     message = NextUpdate()
 
     return templates.TemplateResponse('dateinfo.html',
@@ -203,7 +205,7 @@ async def get_dateinfo(request: Request):
                                     'listDB': lis_DB,
                                     'ManagedNum': ManagedNum,
                                     'message': message,
-                                    'display_date': id_date_,
+                                    'display_date': id_date,
                                     'dt_now': dt_now})
 
 
@@ -212,8 +214,8 @@ async def get_dateinfo(request: Request):
 async def get_dateinfo_error(request: Request):
     data = await request.form()
     data_date = data.getlist('id_date') 
-    id_date_ = data_date[0] #2020-12-01
-    id_date = id_date_[2:4] + id_date_[5:7] + id_date_[8:] #230725
+    id_date = data_date[0] #2020-12-01
+    id_date_ = id_date[2:4] + id_date[5:7] + id_date[8:] #201201
 
     data_changeID = data.getlist('change_id')
     data_changePerson = data.getlist('change_person')
@@ -243,14 +245,15 @@ async def get_dateinfo_error(request: Request):
 
     dt_now = datetime.datetime.utcnow() + datetime.timedelta(hours=DIFF_JST_FROM_UTC)
 
-    Items = DynamoDB_ER_GSI(id_date)
+    Items = DynamoDB_ER()
     lis_Date, lis_Time, lis_ImgPath, lis_ImgName = [],[],[],[]
 
     for item in Items:
-        lis_Date.append(item['Date'])
-        lis_Time.append(item['Time'])
-        lis_ImgPath.append("https://nireco-vehicle-manage-error.s3-ap-northeast-1.amazonaws.com/" + item['Image'])
-        lis_ImgName.append(item['Image'])
+        if item['Date']==id_date_:
+            lis_Date.append(item['Date'])
+            lis_Time.append(item['Time'])
+            lis_ImgPath.append("https://nireco-vehicle-manage-error.s3-ap-northeast-1.amazonaws.com/" + item['Image'])
+            lis_ImgName.append(item['Image'])
 
     #日付・時間順にsortした時のindexを取得
     ind_lex = np.lexsort((lis_Time,lis_Date))
@@ -274,7 +277,7 @@ async def get_dateinfo_error(request: Request):
     
     ManagedNum = len(a) #台数
     if ManagedNum == 0:
-        lis_Date.append(id_date)
+        lis_Date.append(id_date_)
         lis_Time.append("")
         lis_ImgPath.append("https://nireco-vehicle-manage.s3-ap-northeast-1.amazonaws.com/no_image.png")
         a.append(lis_Date[0])
@@ -327,7 +330,7 @@ async def get_dateinfo_error(request: Request):
                                     'listDB': lis_DB,
                                     'listNDB': lis_NDB,
                                     'ManagedNum': ManagedNum,
-                                    'display_date': id_date_,
+                                    'display_date': id_date,
                                     'dt_now': dt_now,
                                     'initial_slide': initial_slide})
 
@@ -687,6 +690,16 @@ def history_download_nonemployee(request: Request):
 
 
     dic_contents = {'ID':nID,'社員番号':n_employee_code, '利用者':nName,'給与コード':n_salary_code, 'ナンバー情報':n_number}
+    
+    # 利用日を追加
+    nID_fix, nName_fix, n_number_fix = [],[],[]
+    for i in range(len(lis_of_lis_histdate)):
+        date_cnt = lis_of_lis_histdate[i]
+        for cnt in date_cnt:
+            nID_fix.append(nID[i])
+            nName_fix.append(nName[i])
+            n_number_fix.append(n_number[i])
+    dic_contents_fix = {'利用日':lis_of_lis_histdate,'ID':nID_fix,'利用者':nName_fix,'ナンバー情報':n_number_fix}
 
     for i in range(len(lis_year_month)):
         # 新しい履歴が左側、古い履歴が右側に来るようにデータを追加する
@@ -695,7 +708,7 @@ def history_download_nonemployee(request: Request):
         dictionary_key = '{0}年{1}月分'.format(year,month)
         dic_contents[dictionary_key]=lis_of_lis_monthly_count[len(lis_year_month) - i - 1]
 
-    df = pd.DataFrame(dic_contents)
+    df = pd.DataFrame(dic_contents_fix)
 
     session = Session()
     s3 = session.resource('s3')
@@ -736,7 +749,7 @@ async def add_holiday(request: Request):
     return data_dict
 
     
-#DynamoDBから全件データ取得
+#DynamoDBからデータ取得
 def DynamoDB():
     session = Session()
     DynamoDB = session.resource('dynamodb')
@@ -750,18 +763,6 @@ def DynamoDB():
         Items.extend(response['Items'])
     return Items
 
-#GSIを使ったQuery検索
-def DynamoDB_GSI(date_yymmdd):
-    session = Session()
-    DynamoDB = session.resource('dynamodb')
-    table = DynamoDB.Table('NirecoVehicleManage')
-    response = table.query(
-        IndexName='Date-index',
-        KeyConditionExpression=Key("Date").eq(date_yymmdd)
-    )
-    Items = response['Items']
-    return Items
-
 def DynamoDB_ER():
     session = Session()
     DynamoDB = session.resource('dynamodb')
@@ -772,17 +773,6 @@ def DynamoDB_ER():
     while 'LastEvaluatedKey' in response:
         response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
         Items.extend(response['Items'])
-    return Items
-
-def DynamoDB_ER_GSI(date_yymmdd):
-    session = Session()
-    DynamoDB = session.resource('dynamodb')
-    table = DynamoDB.Table('NirecoVehicleManageError')
-    response = table.query(
-        IndexName='Date-index',
-        KeyConditionExpression=Key("Date").eq(date_yymmdd)
-    )
-    Items = response['Items']
     return Items
 
 def DynamoDB_nireco():
