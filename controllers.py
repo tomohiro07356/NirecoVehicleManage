@@ -690,6 +690,16 @@ def history_download_nonemployee(request: Request):
 
 
     dic_contents = {'ID':nID,'社員番号':n_employee_code, '利用者':nName,'給与コード':n_salary_code, 'ナンバー情報':n_number}
+    
+    # 利用日を追加
+    nID_fix, nName_fix, n_number_fix = [],[],[]
+    for i in range(len(lis_of_lis_histdate)):
+        date_cnt = lis_of_lis_histdate[i]
+        for cnt in date_cnt:
+            nID_fix.append(nID[i])
+            nName_fix.append(nName[i])
+            n_number_fix.append(n_number[i])
+    dic_contents_fix = {'利用日':lis_of_lis_histdate,'ID':nID_fix,'利用者':nName_fix,'ナンバー情報':n_number_fix}
 
     for i in range(len(lis_year_month)):
         # 新しい履歴が左側、古い履歴が右側に来るようにデータを追加する
@@ -698,7 +708,7 @@ def history_download_nonemployee(request: Request):
         dictionary_key = '{0}年{1}月分'.format(year,month)
         dic_contents[dictionary_key]=lis_of_lis_monthly_count[len(lis_year_month) - i - 1]
 
-    df = pd.DataFrame(dic_contents)
+    df = pd.DataFrame(dic_contents_fix)
 
     session = Session()
     s3 = session.resource('s3')
