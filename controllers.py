@@ -635,12 +635,12 @@ def history_download_nonemployee(request: Request):
         n_employee_code.append(lis_employee_code[i])
     lis_NDB = [nID, nName, nPlateA, nPlateB, nPlateC, nPlateD,n_number,n_salary_code,n_employee_code]
 
-    #入庫履歴情報のロード　直近3ヶ月分を抽出
+    #入庫履歴情報のロード　直近2ヶ月分を抽出
     date_now_date = datetime.date.today()
-    if(date_now_date.month > 2):
-        twomonthago_date = datetime.date(date_now_date.year, date_now_date.month-2, 1) #2ヶ月前の月初の日付
+    if(date_now_date.month > 1):
+        onemonthago_date = datetime.date(date_now_date.year, date_now_date.month-1, 1) #1ヶ月前の月初の日付
     else:
-        twomonthago_date = datetime.date(date_now_date.year-1, date_now_date.month - 2 + 12, 1) #2ヶ月前の月初の日付
+        onemonthago_date = datetime.date(date_now_date.year-1, date_now_date.month - 1 + 12, 1) #1ヶ月前の月初の日付
 
     Items = DynamoDB()
     lis_ID,lis_Date, lis_estiID, lis_estiPerson=[],[],[],[]
@@ -649,7 +649,7 @@ def history_download_nonemployee(request: Request):
         date_his_int = item['Date']
         date_his_date = datetime.date(int("20"+date_his_int[0:2]),int(date_his_int[2:4]),int(date_his_int[4:6]))
 
-        if date_his_date >= twomonthago_date:
+        if date_his_date >= onemonthago_date:
             lis_ID.append(item['ID'])
             lis_Date.append(item['Date'])
             lis_estiID.append(item['estiID'])
@@ -693,11 +693,6 @@ def history_download_nonemployee(request: Request):
     
     # 利用日を追加
     lis_histdate_fix, nID_fix, nName_fix, n_number_fix = [],[],[],[]
-
-    #for histdate in lis_of_lis_histdate:
-    #    if len(histdate) > 1:
-    #        histdate.sort()
-
     for i in range(len(lis_of_lis_histdate)):
         date_cnt = len(lis_of_lis_histdate[i])
         for cnt in range(date_cnt):
@@ -706,7 +701,7 @@ def history_download_nonemployee(request: Request):
                 nID_fix.append(nID[i])
                 nName_fix.append(nName[i])
                 n_number_fix.append(n_number[i])
-    dic_contents_fix = {'利用日':lis_histdate_fix,'ID':nID_fix,'利用者':nName_fix,'ナンバー情報':n_number_fix}
+    dic_contents_fix = {'利用日（YYMMDD）':lis_histdate_fix,'ID':nID_fix,'利用者':nName_fix,'ナンバー情報':n_number_fix}
 
     for i in range(len(lis_year_month)):
         # 新しい履歴が左側、古い履歴が右側に来るようにデータを追加する
@@ -717,7 +712,7 @@ def history_download_nonemployee(request: Request):
 
     df = pd.DataFrame(dic_contents_fix)
     # ソート
-    df_sort = df.sort_values(by=['ID', '利用日'])
+    df_sort = df.sort_values(by=['ID', '利用日（YYMMDD）'])
 
     session = Session()
     s3 = session.resource('s3')
