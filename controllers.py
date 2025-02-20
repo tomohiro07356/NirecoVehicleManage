@@ -635,12 +635,12 @@ def history_download_nonemployee(request: Request):
         n_employee_code.append(lis_employee_code[i])
     lis_NDB = [nID, nName, nPlateA, nPlateB, nPlateC, nPlateD,n_number,n_salary_code,n_employee_code]
 
-    #入庫履歴情報のロード　直近2ヶ月分を抽出
+    #入庫履歴情報のロード　直近1ヶ月分を抽出
     date_now_date = datetime.date.today()
     if(date_now_date.month > 1):
-        onemonthago_date = datetime.date(date_now_date.year, date_now_date.month-1, 1) #1ヶ月前の月初の日付
+        onemonthago_date = datetime.date(date_now_date.year, date_now_date.month - 1, 1) #1ヶ月前の月初の日付
     else:
-        onemonthago_date = datetime.date(date_now_date.year-1, date_now_date.month - 1 + 12, 1) #1ヶ月前の月初の日付
+        onemonthago_date = datetime.date(date_now_date.year - 1, date_now_date.month - 1 + 12, 1) #1ヶ月前の月初の日付
 
     Items = DynamoDB()
     lis_ID,lis_Date, lis_estiID, lis_estiPerson=[],[],[],[]
