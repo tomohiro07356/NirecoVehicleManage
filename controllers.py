@@ -694,9 +694,9 @@ def history_download_nonemployee(request: Request):
     # 利用日を追加
     lis_histdate_fix, nID_fix, nName_fix, n_number_fix = [],[],[],[]
 
-    for histdate in lis_of_lis_histdate:
-        if len(histdate) > 1:
-            histdate.sort()
+    #for histdate in lis_of_lis_histdate:
+    #    if len(histdate) > 1:
+    #        histdate.sort()
 
     for i in range(len(lis_of_lis_histdate)):
         date_cnt = len(lis_of_lis_histdate[i])
@@ -716,11 +716,13 @@ def history_download_nonemployee(request: Request):
         dic_contents[dictionary_key]=lis_of_lis_monthly_count[len(lis_year_month) - i - 1]
 
     df = pd.DataFrame(dic_contents_fix)
+    # ソート
+    df_sort = df.sort_values(by=['ID', '利用日'])
 
     session = Session()
     s3 = session.resource('s3')
     bucket = s3.Bucket('nireco-vehicle-manage')
-    df_csv = df.to_csv(index=None) # dfはデータフレーム型のデータ
+    df_csv = df_sort.to_csv(index=None) # dfはデータフレーム型のデータ
     objkey = "VehiclePassageRecord_nonemployee.csv"
     putobj = bucket.Object(objkey)
     putobj.put(Body=df_csv.encode('shift_jis'), ContentEncoding='shift_jis')
